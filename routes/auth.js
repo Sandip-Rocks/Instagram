@@ -1,7 +1,10 @@
 const express=require('express');
 const router=express.Router();
-const mongoose=require('mongoose');
-const User=mongoose.model('User');
+const mongoose=require('mongoose')
+const User=mongoose.model('User')
+const bcrypt=require('bcryptjs');
+const jwt=require('jsonwebtoken');
+const {JWT_SECRET}=require('../keys');
 
 
 router.get('/',(req,res,next)=>{
@@ -20,17 +23,20 @@ router.post('/signup',(req,res,next)=>{
         if(savedUser){
             return res.status(422).json({error:"User already exist with that email"})
         }
-        const user=new User({
-            email,
-            password,
-            name
-        })
-        user.save()
-        .then(user=>{
-            res.json({message:"saved successfully"})
-        })
-        .catch(err=>{
-            console.log(err);
+        bcrypt.hash(password,12).then(hashedPassword=>{
+
+            const user=new User({
+                email,
+                password:hashedPassword,
+                name
+            })
+            user.save()
+            .then(user=>{
+                res.json({message:"saved successfully"})
+            })
+            .catch(err=>{
+                console.log(err);
+            })
         })
     })
     .catch(err=>{
@@ -38,5 +44,41 @@ router.post('/signup',(req,res,next)=>{
     })
     
     
+})
+
+router.post('/signin',(req,res,next)=>{
+    const {email,password}=req.body
+
+    if(!email||!password){
+        return res.status(422).json({
+            message:"Email or password should not be blank"
+        })
+    }
+    User.findOne({email:email})
+    .then(  savedUser=>{
+        if(!savedUser){
+            return res.status(422).json({
+                error:"Invalid email or password"
+            })
+        }
+        bcrypt.compare(password,savedUser.password)
+        .then(doMatch=>{
+            if(doMatch){
+                // res.status(200).json({
+                //     message:'Signed in successfully'
+                // })
+                const token=jwt.sign({_id:savedUser._id},JWT_SECRET)
+                res.json({token})
+            }
+            else{
+                return res.status(422).json({
+                    error:'Invalid email id or password'
+                })
+            }
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+    })
 })
 module.exports=router;
