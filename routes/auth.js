@@ -5,9 +5,9 @@ const User=mongoose.model('User')
 const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const {JWT_SECRET}=require('../keys');
+const requireLogin=require('../middleware/requireLogin');
 
-
-router.get('/',(req,res,next)=>{
+router.get('/protected',requireLogin,(req,res)=>{
     res.send('Hello Auth')
 })
 router.post('/signup',(req,res,next)=>{
