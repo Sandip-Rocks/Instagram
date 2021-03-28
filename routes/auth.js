@@ -10,6 +10,9 @@ const requireLogin=require('../middleware/requireLogin');
 router.get('/protected',requireLogin,(req,res)=>{
     res.send('Hello Auth')
 })
+// router.get('/p',requireLogin,(req,res)=>{
+//     res.send('Hello p')
+// })
 router.post('/signup',(req,res,next)=>{
     // res.send(req.body)
     const {name,email,password}=req.body;
@@ -81,4 +84,5 @@ router.post('/signin',(req,res,next)=>{
         })
     })
 })
+
 module.exports=router;
